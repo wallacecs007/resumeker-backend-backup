@@ -1,63 +1,78 @@
 const axios = require('axios')
 const router = require('express').Router()
+const request = require('request')
 
 const checkJwt = require('../authentication/auth.js')
-const getUsername = require('../middleware/auth0calls.js')
-const Users = require('./user-model.js')
+const {getSub} = require('../middleware/auth0calls.js')
+const {getToken, config} = require('../data/auth0config')
 
-router.get('/checkuser', checkJwt, getUsername, (req, res, next) => {
+router.get('/getUser', checkJwt, getSub, async (req, res, next) => {
 
-    const username = res.locals.username;
+    const sub = res.locals.sub;
+    const token = await getToken();
 
-    Users.findByUsername(username)
-        .then(user => {
-            if(user.length != 0) {
-                res.status(200).json({existing: true})
-            } else {
-                res.status(200).json({existing: false})
+    var options = {
+        method: 'GET',
+        url: `https://${process.env.AUTH0_DOMAIN}/api/v2/users/${sub}`,
+        headers: {
+            authorization: token,
+            'content-type': 'application/json'
+        },
+        json: true,
+        jar: 'JAR'
+    }
+
+    try {
+        request(options, function (error, response, body) {
+            if(error) {
+                console.log(error)
+                res.status(401).json(error)
             }
+
+            res.status(200).json(body)
         })
-        .catch(err => {
-            res.status(500).json({message: 'Failed to get schemes'})
-        })
+    } catch (err) {
+        console.log(err)
+        res.status(400).json(err)
+    }
+
 })
 
-router.get('/user', checkJwt, getUsername, (req, res, next) => {
+router.patch('/updateUser', checkJwt, getSub, async (req, res, next) => {
 
-    const username = res.locals.username
+    const sub = res.locals.sub;
+    const token = await getToken();
+    console.log(req.body)
 
-    Users.findByUsername(username)
-        .then(user => {
-            if(user.length != 0) {
-                res.status(200).json(user)
-            } else {
-                res.status(400).json({error: 'Failed to find user'})
+    var options = {
+        method: 'PATCH',
+        url: `https://${process.env.AUTH0_DOMAIN}/api/v2/users/${sub}`,
+        headers: {
+          authorization: token,
+          'content-type': 'application/json'
+        },
+        body: req.body,
+        json: true,
+        jar: 'JAR'
+      };
+
+    try {
+        
+        request(options, function (error, response, body) {
+            if(error) {
+                console.log(error)
+                res.status(401).json(error)
             }
+
+            // console.log(body)
+            res.status(200).json(body)
         })
-        .catch (err => {
-            res.status(500).json({message: 'Failed to get schemes'})
-        })
+
+    } catch (err) {
+        console.log(err);
+        res.status(401).json(err)
+    }
 
 })
-
-router.post('/user', checkJwt, getUsername, (req, res) => {
-
-    console.log('Middleware Username Check Passed')
-
-    const username = res.locals.username;
-    let user = req.body.user;
-    user['username'] = username;
-
-    Users.addUser(user)
-        .then(newUser => {
-            res.status(201).json(newUser)
-        })
-        .catch(err => {
-            console.log(err)
-            res.status(500).json({message: 'Failed to add user to database'})
-        })
-
-})
-
 
 module.exports = router;

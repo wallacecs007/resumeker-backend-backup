@@ -1,6 +1,8 @@
 const express = require('express')
 const helmet = require('helmet')
 const cors = require('cors')
+require('dotenv/config')
+console.log(process.env.AUTH0_DOMAIN)
 
 const userRouter = require('./endpoints/user-router.js')
 
@@ -14,10 +16,10 @@ server.use(express.json())
 server.use('/api', userRouter)
 
 server.get("/", (req, res, next) => {
-    res.json({
-      message: "Welcome to Resumeker",
-    })
+  res.json({
+    message: "Welcome to Resumeker",
   })
+})
   
   server.use((err, req, res, next) => {
     console.log("Error:", err)

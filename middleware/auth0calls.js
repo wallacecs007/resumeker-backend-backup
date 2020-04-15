@@ -1,11 +1,12 @@
 const axios = require('axios')
 
-const getUsername = function (req, res, next) {
+const getSub = function (req, res, next) {
     console.log('usernameMiddleware running')
 
     axios.get('https://dev-cwmo2php.auth0.com/userinfo', {headers: {'Authorization': `${req.headers.authorization}`}})
         .then(response => {
-            res.locals.username = response.data.sub;
+            res.locals.sub = response.data.sub;
+            // console.log(res.locals.sub)
             next()
         })
         .catch(err => {
@@ -15,4 +16,4 @@ const getUsername = function (req, res, next) {
 
 }
 
-module.exports = getUsername;
+module.exports = {getSub};
