@@ -12,7 +12,7 @@
     "express-session": "^1.17.0",
     "helmet": "^3.22.0",
     "jwks-rsa": "^1.8.0",
-    "knex": "^0.20.13",
+    "knex": "^2.4.0",
     "node.js": "0.0.1-security",
     "nodemon": "^2.0.3",
     "passport": "^0.4.1",
